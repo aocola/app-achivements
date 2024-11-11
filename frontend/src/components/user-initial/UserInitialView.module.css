@@ -1,0 +1,116 @@
+.card {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f5f5f5;
+    padding: 2rem;
+  }
+  
+  .container {
+    width: 100%;
+    max-width: 400px;
+    background-color: #ffffff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 2px solid #0070f3;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .labelWrapper {
+    background-color: #0070f3;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-align: center;
+  }
+  
+  .fileInputWrapper {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .hiddenFileInput {
+    display: none;
+  }
+  
+  .medalSection {
+    text-align: center;
+    margin-top: 1rem;
+  }
+  
+  .medalPlaceholder {
+    width: 100px;
+    height: 100px;
+    background-color: #ddd;
+    border-radius: 50%;
+    margin: 0.5rem auto;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+  }
+  .medalPlaceholder img {
+    padding-top: 1.2rem;
+    width: 64px;
+    height: 64px;
+    color: white;
+  }
+
+  
+  .medalMadera {
+    filter: brightness(0.7) sepia(60%) hue-rotate(20deg) saturate(200%) contrast(90%);
+  }
+  
+  .medalHierro {
+    filter: brightness(0.8) grayscale(100%) contrast(80%);
+  }
+  
+  .medalBronce {
+    
+    filter: sepia(50%) hue-rotate(-10deg) saturate(400%) brightness(0.9);
+  }
+  
+  .medalPlata {
+    filter: grayscale(100%) brightness(1.2) contrast(90%);
+  }
+  
+  .medalOro {
+    filter: sepia(100%) hue-rotate(35deg) saturate(500%) brightness(1.1);
+  }
+  
+  .medalPlatinum {
+    filter: grayscale(100%) brightness(1.5) contrast(130%);
+  }
+  
+  .medalDiamante {
+    filter: brightness(1.2) sepia(200%) hue-rotate(100deg) saturate(300%) contrast(90%);
+  }
+  
+  .medalInmortal {
+    filter: brightness(0.8) sepia(50%) hue-rotate(280deg) saturate(300%) contrast(100%);
+  }
+  
+  .medalRadiante {
+    filter: sepia(100%) hue-rotate(40deg) saturate(600%) brightness(1.3);
+  }
+  
+  .defaultMedal {
+    filter: none;
+  }
+  
+  .link {
+    margin-top: 1rem;
+    font-size: 1rem;
+    color: #0070f3;
+    text-decoration: underline;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    text-align: center;
+  }
+  

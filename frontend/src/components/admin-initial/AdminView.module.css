@@ -1,0 +1,85 @@
+.card {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f5f5f5;
+    padding: 2rem;
+  }
+  
+  .container {
+    width: 100%;
+    max-width: 800px;
+    background-color: #ffffff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 2px solid #0070f3;
+  }
+  
+  .title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  
+  .buttonGroup {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+  
+  .iconButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+  }
+  
+  .iconButton:hover {
+    background-color: #e0e0e0;
+  }
+  
+  @media (max-width: 768px) {
+    .container {
+      padding: 1rem;
+      max-width: 100%;
+    }
+  }
+  
+  .searchContainer {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px; /* Espaciado entre el input y los botones */
+    margin: 0px;
+    width: 100%;
+  }
+  
+  .searchOptions{
+    display: flex;
+    gap: 5px;
+  }
+  .searchContainer input{
+    height: 20px; /* Asegura que el input y los botones tengan la misma altura */
+    
+  }
+
+  .searchContainer button {
+    height: 46px; /* Asegura que el input y los botones tengan la misma altura */
+    margin: 0;
+  }
+  
+  @media (max-width: 768px) {
+    .searchContainer {
+      flex-direction: column; /* Los elementos se apilan en pantallas pequeñas */
+      align-items: stretch;
+    }
+  
+    .searchContainer button {
+      width: 100%; /* Los botones ocupan todo el ancho en pantallas pequeñas */
+    }
+  }
+  
