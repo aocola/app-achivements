@@ -51,7 +51,7 @@ export class AcceptDetailService {
                     detail.setMedal(medal.toValue().tipo);
                     await this.detailRepository.update(detail);
                     medal.verify();
-                    this.notificationGateway.server.to(detail.toValue().userId).emit('notifyAchivement', { ...medal });
+                    this.notificationGateway.server.to(detail.toValue().userId).emit('notifyAchivement', { ...medal.toValue() });
                 }
             }
 

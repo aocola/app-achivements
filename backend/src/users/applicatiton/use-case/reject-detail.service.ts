@@ -3,12 +3,14 @@ import { DetailRepository } from "src/users/domain/repository/detail.repository"
 import { MedalRepository } from "src/users/domain/repository/medal.repository";
 import { getMedal, getSuperiorMedals, isMedalType } from "../constants/medals";
 import { Medalla } from "src/users/domain/entities/medal.entity";
+import { NotificationGateway } from "src/users/infrastructure/gateway/details.gateway.websocket";
 
 @CustomInjectable()
 export class RejectDetailService {
     constructor(
         private readonly detailRepository: DetailRepository,
-        private readonly medalRepository: MedalRepository
+        private readonly medalRepository: MedalRepository,
+        private readonly notificationGateway: NotificationGateway
     ) {}
 
     async execute(detailId: string): Promise<boolean> {
@@ -37,7 +39,7 @@ export class RejectDetailService {
         await this.adjustMedals(newMedalType, currentMedals);
 
         // Emitir evento de actualización en tiempo real
-
+        this.notificationGateway.server.to('admin').emit('removeDetail', { detailId });
         return true;
     }
     //TODO: Corregir rechazar: estado de medalla pasa a bloqueado ambas inmortal y platino

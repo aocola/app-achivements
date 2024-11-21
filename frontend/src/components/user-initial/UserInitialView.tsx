@@ -65,6 +65,16 @@ const UserInitialView: React.FC = () => {
         console.log('Unido a la sala:', response);
       });
 
+      socket.on('notifyAchivement', (medal) => {
+        console.log("notifyAchivement",medal);
+        try {
+          toast.success(`Se ha alcanzado una nueva medalla! Felicitaciones: ${medal.tipo}`);
+          getMedalValues();
+        } catch {
+          toast.error('Error al procesar la notificación.');
+        }
+      });
+
       socket.on('notifyApproval', (detail) => {
         try {
           console.log(detail);
