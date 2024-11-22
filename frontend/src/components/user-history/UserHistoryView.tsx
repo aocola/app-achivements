@@ -24,9 +24,10 @@ const UserHistoryView: React.FC = () => {
 
 
   const getDetails = useCallback(async () => {
-    const { data, status } = await getUserDetalleById(id as string);
+    const { data, status, message } = await getUserDetalleById(id as string);
     if (!status) {
-      toast.error('Ocurrió un error al obtener los datos');
+      toast.warn(message, { toastId: 'no-user' });
+      router.push("/admin");
       return;
     }
     if (data.length === 0) {
