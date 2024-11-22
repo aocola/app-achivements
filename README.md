@@ -1,3 +1,7 @@
+Aquí tienes el contenido actualizado del archivo `README.md` con los archivos para descargar desde GitHub y la información del controlador agregada:
+
+---
+
 # Gestor de Medallas por Clientes
 
 ## Descripción del Proyecto
@@ -24,6 +28,60 @@ Este proyecto es una aplicación web que permite gestionar medallas otorgadas a 
 | 11111111 | admin      |
 | 00000000 | admin      |
 | 11111133 | sample     |
+
+### Usuarios de Prueba (USER)
+| Usuario  | Contraseña |
+|----------|------------|
+| 00000001 | 1234      |
+
+---
+
+## Archivos para Descargar
+
+A continuación, se encuentran los archivos disponibles para su descarga directa desde el repositorio:
+
+- [errorfile.csv](https://github.com/aocola/app-achivements/raw/fix/websocketIssue/files/errorfile.csv)
+- [sample[3].csv](https://github.com/aocola/app-achivements/raw/fix/websocketIssue/files/sample%5B3%5D.csv)
+- [sample[6].csv](https://github.com/aocola/app-achivements/raw/fix/websocketIssue/files/sample%5B6%5D.csv)
+- [sample[9].csv](https://github.com/aocola/app-achivements/raw/fix/websocketIssue/files/sample%5B9%5D.csv)
+- [sample[18].csv](https://github.com/aocola/app-achivements/raw/fix/websocketIssue/files/sample%5B18%5D.csv)
+- [sample[36].csv](https://github.com/aocola/app-achivements/raw/fix/websocketIssue/files/sample%5B36%5D.csv)
+- [sample[72].csv](https://github.com/aocola/app-achivements/raw/fix/websocketIssue/files/sample%5B72%5D.csv)
+
+---
+
+## Controlador: Obtener Medallas por Usuario
+
+### API: `@Controller("users")`
+
+```typescript
+@Controller("users")
+export class GetMedalByUserController {
+    constructor(private service: GetMedalsByUserService) {}
+
+    @Get("medals/:id")
+    async run(@Param() dto: GetMedalsByUserIdDto): Promise<object> {
+        try {
+            const data = await this.service.execute(dto.id);
+            return ResponseDto.success(data, "Operacion satisfactoria", HttpStatus.FOUND);
+        } catch (error) {
+            return ResponseDto.error("Error en obtener medallas", error, HttpStatus.BAD_REQUEST);
+        }
+    }
+}
+```
+
+### DTO: `GetMedalsByUserIdDto`
+
+```typescript
+import { IsNotEmpty, IsString } from 'class-validator';
+
+export class GetMedalsByUserIdDto {
+    @IsString()
+    @IsNotEmpty()
+    id: string; // ID del usuario para obtener sus detalles
+}
+```
 
 ---
 
@@ -205,3 +263,5 @@ El usuario recibirá una notificación en tiempo real.
 ## Licencia
 
 Este proyecto se encuentra bajo la licencia MIT.
+
+--- 
