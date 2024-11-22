@@ -57,6 +57,10 @@ function getMinimalMedal(): MedalType {
     return MEDAL_SEQUENCE[0]; 
 }
 
+function getMaximumMedal(): MedalType {
+    return MEDAL_SEQUENCE[MEDAL_SEQUENCE.length-1]; 
+}
+
 function isMedalType(value: string): value is MedalType {
     return Object.values(MEDALS).includes(value as MedalType);
 }
@@ -124,5 +128,6 @@ export {
     getStyle,
     getMinimalMedal,
     isValidMedal,
+    getMaximumMedal,
     MEDALS
 };

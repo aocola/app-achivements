@@ -103,6 +103,7 @@
   }
   
   .link {
+    display: inline-block;
     margin-top: 1rem;
     font-size: 1rem;
     color: #0070f3;

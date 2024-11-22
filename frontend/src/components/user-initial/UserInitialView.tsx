@@ -3,11 +3,11 @@ import { useRouter } from 'next/router';
 import styles from './UserInitialView.module.css';
 import CustomButton from '../common/button/CustomButton';
 import { processCSVByIndex } from '@/utils/processCv';
-import { getProgress, getUserDetalleById, getUserMedals, registerClientesBatch } from '@/services/userService'; // Importa el servicio de logout
+import { getProgress, getUserMedals, registerClientesBatch } from '@/services/userService'; // Importa el servicio de logout
 import { toast } from 'react-toastify';
 import { useSelector, useDispatch } from 'react-redux';
 import { setUserState } from '@/redux/slices/appSlice'; // Acción para limpiar el estado del usuario
-import { getHighestMedalFromSet, getStyle } from './medals';
+import { getHighestMedalFromSet, getMaximumMedal, getStyle } from './medals';
 import Image from 'next/image';
 import ProgressBar from '../common/progressbar/ProgressBar';
 import { io } from 'socket.io-client';
@@ -19,6 +19,7 @@ const UserInitialView: React.FC = () => {
   const user = useSelector((state: any) => state.app.userState);
   const dispatch = useDispatch();
   const [progress, setProgress] = useState(0);
+  const [isMaxMedal, setIsMaxMedal] = useState(false);
 
   const getMedalValues = useCallback(async () => {
     if (!user || Array.isArray(user.userId)) return;
@@ -30,8 +31,10 @@ const UserInitialView: React.FC = () => {
       );
       const medal = medallas && getHighestMedalFromSet(medallas);
       const dataMedal = data.find((item: any) => item.tipo === medal);
+      dataMedal && dataMedal.tipo===getMaximumMedal() && setIsMaxMedal(true);
       setMaxMedal(dataMedal);
-    } catch {
+    } catch(e) {
+      console.log(e);
       toast.error('Error al obtener medallas.');
     }
   }, [user]);
@@ -73,10 +76,14 @@ const UserInitialView: React.FC = () => {
       socket.on('notifyApproval', (detail) => {
         try {
           if (detail.status === 'APPROVED') {
-            setProgress((prev) =>{
-              const newProgress =  prev + (detail.counter % 10) * 10;
-              return newProgress>100?100:newProgress;
-            });
+            if(detail.counter<10)
+              setProgress((prev) =>{
+                const newProgress =  prev + (detail.counter % 10) * 10;
+                return newProgress>100?100:newProgress;
+              });
+            else resetProgress();
+            
+           
             toast.info(`Se ha aprobado uno de sus archivos que contaba con ${detail.counter} clientes.`);
           } else {
             toast.warn(`Se ha rechazado uno de sus archivos que contaba con ${detail.counter} clientes.`);
@@ -97,18 +104,20 @@ const UserInitialView: React.FC = () => {
     }
   }, [user, getMedalValues, getDetailValues]);
 
+  const resetProgress = () => {
+    setProgress(100);
+    setTimeout(() => {
+      setProgress(0);
+    }, 500);
+  };
+
   useEffect(() => {
     if (progress >= 100) {
       getMedalValues();
-      const resetProgress = () => {
-        setProgress(100);
-        setTimeout(() => {
-          setProgress(0);
-        }, 500);
-      };
+      resetProgress();
       progress === 100 ? resetProgress() : setProgress((prev) => prev % 100);
     }
-  }, [progress, getMedalValues]);
+  }, [progress, getMedalValues,resetProgress]);
 
   const handleLogout = async () => {
     try {
@@ -134,10 +143,12 @@ const UserInitialView: React.FC = () => {
     if (selectedFile) {
       try {
         const payload = await processCSVByIndex(selectedFile, user.userId);
+        if(payload.warning){toast.warn(payload.warning); return;}
+        
         await registerClientesBatch(payload);
         await getMedalValues();
-        toast.success('¡Operación exitosa!');
-      } catch {
+        toast.success(`¡Operación exitosa! Se han ingresado ${payload.clientes.length} clientes!`);
+      } catch(error) {
         toast.error('Operación fallida: Ocurrió un error durante el proceso.');
       }
     } else {
@@ -194,12 +205,21 @@ const UserInitialView: React.FC = () => {
             <Image src="/medal.svg" alt="Medalla" width={32} height={32} />
           </div>
           <div className={styles.progressSection}>
-            <p>Progreso hacia la próxima medalla:</p>
-            <ProgressBar progress={progress} />
+            {!isMaxMedal && <p>Progreso hacia la próxima medalla:</p>}
+            {isMaxMedal && <p>¡Felicidades ha alcanzado la máxima medalla!</p>}
+            <ProgressBar progress={isMaxMedal?100:progress} />
           </div>
           <button onClick={handleViewMedals} className={styles.link}>
             Ver todas mis medallas
           </button>
+          <br/>
+          <a
+            href="/plantilla.csv"
+            download="plantilla.csv"
+            className={styles.link} // Agrega estilos similares a otros botones/links
+          >
+            Descargar Plantilla CSV
+          </a>
         </div>
 
         <CustomButton

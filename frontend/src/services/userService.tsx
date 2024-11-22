@@ -20,6 +20,7 @@ export interface CreateClienteDto {
 
 export interface CreateClientesBatchDto {
   userId: string;
+  warning:  string | undefined;
   clientes: CreateClienteDto[];
 }
 

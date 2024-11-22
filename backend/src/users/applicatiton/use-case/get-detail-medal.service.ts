@@ -2,7 +2,7 @@ import { Inject } from "@nestjs/common";
 import { CustomInjectable } from "src/common/dependecy-injection/injectable";
 import { DetailRepository } from "src/users/domain/repository/detail.repository";
 import { MedalRepository } from "src/users/domain/repository/medal.repository";
-import { MEDAL_STATUS } from "../constants/medals";
+import { getHighestMedal, getHighestMedalFromSet, getMaximumMedal, MEDAL_STATUS } from "../constants/medals";
 
 @CustomInjectable()
 export class GetDetailMedalService {
@@ -20,8 +20,10 @@ export class GetDetailMedalService {
         const detailList = await this.detailRepository.getByUserId(userId);
          
         const unverifiedMedal = medals.find(item=>item.getStatus()===MEDAL_STATUS.NO_VERIFICADA);
-        const detailFiltered = unverifiedMedal?detailList.filter(item=>item.getStatus()==="APPROVED" && item.getMedal()===unverifiedMedal.getType()):[];
-        
-        return detailFiltered.reduce((acc,item)=>acc+item.getCounter(),0);
+        if(unverifiedMedal){
+            const detailFiltered = unverifiedMedal?detailList.filter(item=>item.getStatus()==="APPROVED" && item.getMedal()===unverifiedMedal.getType()):[];        
+            return detailFiltered.reduce((acc,item)=>acc+item.getCounter(),0);
+        }
+        return 0;
     }
 }

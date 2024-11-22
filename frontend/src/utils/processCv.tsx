@@ -1,46 +1,46 @@
 import { CreateClientesBatchDto } from '@/services/userService';
 import Papa from 'papaparse';
 
-interface Cliente {
-  dni: string;
-  nombre: string;
-  apellido: string;
-  correo: string;
-}
-
-interface Payload {
-  userId: string;
-  clientes: Cliente[];
-}
-
 export const processCSVByIndex = (file: File, userId: string): Promise<CreateClientesBatchDto> => {
-    return new Promise((resolve, reject) => {
-      Papa.parse<string[]>(file, {
-        header: false,
-        skipEmptyLines: true,
-        complete: (results) => {
-          const [headers, ...rows] = results.data;
-  
-          const clientes = rows.map((row) => ({
-            dni: row[0] || '',
-            nombre: row[1] || '',
-            apellidos: row[2] || '', // Cambia 'apellido' por 'apellidos' aquí
-            correo: row[3] || '',
-          }));
-  
-          const payload: CreateClientesBatchDto = {
-            userId,
-            clientes,
-          };
-  
-          resolve(payload);
-        },
-        error: (error) => {
-          reject(error);
-        },
-      });
+  return new Promise((resolve, reject) => {
+    Papa.parse<string[]>(file, {
+      header: false,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const [, ...rows] = results.data;
+
+        // Map and validate rows
+        const clientes = rows
+          .map((row) => ({
+            dni: row[0]?.trim() || '',
+            nombre: row[1]?.trim() || '',
+            apellidos: row[2]?.trim() || '',
+            correo: row[3]?.trim() || '',
+          }))
+          .filter(
+            (cliente) =>
+              cliente.dni &&
+              cliente.nombre &&
+              cliente.apellidos &&
+              cliente.correo
+          );
+
+          let warning: string | undefined;
+          if (clientes.length === 0) {
+            warning = 'El archivo no contiene clientes válidos. Por favor, revise el contenido.';
+          }
+
+        const payload: CreateClientesBatchDto = {
+          userId,
+          clientes,
+          warning
+        };
+
+        resolve(payload);
+      },
+      error: (error) => {
+        reject(error);
+      },
     });
-  };
-  
-  
-  
+  });
+};
