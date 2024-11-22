@@ -4,7 +4,7 @@ import { Detalle } from "src/users/domain/entities/detail.entity";
 import { DetailRepository } from "src/users/domain/repository/detail.repository";
 import { CustomerRepository } from "src/users/domain/repository/customers.repository";
 import { Cliente } from "src/users/domain/entities/client.entity";
-import { MEDAL_STATUS, getHighestMedalFromSet, getMaximumMedal, getMinimalMedal, getNextMedal } from "../constants/medals";
+import { MEDAL_STATUS, MedalType, getHighestMedalFromSet, getMaximumMedal, getMinimalMedal, getNextMedal } from "../constants/medals";
 import { MedalRepository } from "src/users/domain/repository/medal.repository";
 import { Medalla } from "src/users/domain/entities/medal.entity";
 import { NotificationGateway } from "src/users/infrastructure/gateway/details.gateway.websocket";
@@ -50,32 +50,58 @@ export class RegisterCustomerService {
 
   private async verifyAndAssignMedals(userId: string, detalle: Detalle): Promise<void> {
     const medals = await this.medalRepository.getByUserId(userId);
-
+  
     if (medals.length === 0) {
-      await this.createMedal(userId, getMinimalMedal(), MEDAL_STATUS.NO_VERIFICADA);
+      await this.assignInitialMedal(userId);
       return;
     }
-
-    const unverifiedMedal = medals.find(
-      item => item.getStatus() === MEDAL_STATUS.NO_VERIFICADA || item.getStatus() === MEDAL_STATUS.BLOQUEADA,
-    );
-
+  
+    const unverifiedMedal = this.getUnverifiedMedal(medals);
+  
     if (unverifiedMedal) {
-      if (unverifiedMedal.getStatus() === MEDAL_STATUS.BLOQUEADA) {
-        await this.updateUnverifyMedal(unverifiedMedal);
-      }
-    } else {
-      const currentMedalTypes = new Set(medals.map(m => m.getType()));
-      const highestMedal = getHighestMedalFromSet(currentMedalTypes);
-
-      if (highestMedal !== getMaximumMedal()) {
-        const nextMedal = getNextMedal(highestMedal);
-        await this.createMedal(userId, nextMedal, MEDAL_STATUS.NO_VERIFICADA);
-      } else {
-        this.notifyMaxMedalAchieved(detalle, userId, highestMedal); 
-      }
+      await this.handleUnverifiedMedal(unverifiedMedal);
+      return;
+    }
+  
+    await this.handleMedalUpgrade(userId, detalle, medals);
+  }
+  
+  private async assignInitialMedal(userId: string): Promise<void> {
+    await this.createMedal(userId, getMinimalMedal(), MEDAL_STATUS.NO_VERIFICADA);
+  }
+  
+  private getUnverifiedMedal(medals: Medalla[]): Medalla | undefined {
+    return medals.find(
+      medal => medal.getStatus() === MEDAL_STATUS.NO_VERIFICADA || medal.getStatus() === MEDAL_STATUS.BLOQUEADA,
+    );
+  }
+  
+  private async handleUnverifiedMedal(medal: Medalla): Promise<void> {
+    if (medal.getStatus() === MEDAL_STATUS.BLOQUEADA) {
+      await this.updateUnverifyMedal(medal);
     }
   }
+  
+  private async handleMedalUpgrade(userId: string, detalle: Detalle, medals: Medalla[]): Promise<void> {
+    const currentMedalTypes = new Set(medals.map(medal => medal.getType()));
+    const highestMedal = getHighestMedalFromSet(currentMedalTypes);
+  
+    if (this.isMaxMedalAchieved(highestMedal)) {
+      this.notifyMaxMedalAchieved(detalle, userId, highestMedal);
+    } else {
+      await this.assignNextMedal(userId, highestMedal);
+    }
+  }
+  
+  private isMaxMedalAchieved(highestMedal: string): boolean {
+    return highestMedal === getMaximumMedal();
+  }
+  
+  private async assignNextMedal(userId: string, highestMedal: string): Promise<void> {
+    const nextMedal = getNextMedal(highestMedal as MedalType);
+    await this.createMedal(userId, nextMedal, MEDAL_STATUS.NO_VERIFICADA);
+  }
+  
 
   private async updateUnverifyMedal(medal: Medalla): Promise<void> {
     medal.notVerify();

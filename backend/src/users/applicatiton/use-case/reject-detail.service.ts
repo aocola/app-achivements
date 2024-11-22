@@ -24,22 +24,40 @@ export class RejectDetailService {
      * @throws {Error} Si el detalle no se encuentra.
      */
     async execute(detailId: string): Promise<boolean> {
-        // 1. Obtener el detalle por su ID
+        const detail = await this.getDetailOrThrow(detailId);
+      
+        await this.rejectDetail(detail);
+      
+        const userId = detail.getOwner();
+        const userMedals = await this.medalRepository.getByUserId(userId);
+        const unverifiedMedal = this.findUnverifiedMedal(userMedals);
+      
+        if (unverifiedMedal) {
+          const detailList = await this.detailRepository.getByUserId(userId);
+          await this.adjustMedals(unverifiedMedal, detailList);
+        }
+      
+        this.notifyReject(detailId);
+        return true;
+      }
+      
+      private async getDetailOrThrow(detailId: string): Promise<Detalle> {
         const detail = await this.detailRepository.getById(detailId);
-        if (!detail) throw new Error(`Detalle con ID ${detailId} no encontrado.`);
+        if (!detail) {
+          throw new Error(`Detalle con ID ${detailId} no encontrado.`);
+        }
+        return detail;
+      }
+      
+      private async rejectDetail(detail: Detalle): Promise<void> {
         detail.reject();
         await this.detailRepository.update(detail);
-
-        const userId = detail.getOwner();
-        const detailList = await this.detailRepository.getByUserId(userId);
-        
-        const userMedals = await this.medalRepository.getByUserId(userId);
-        const unverifiedMedal = userMedals.find(medal=>medal.getStatus()===MEDAL_STATUS.NO_VERIFICADA);
-        unverifiedMedal && await this.adjustMedals(unverifiedMedal, detailList);
-       
-        this.notifyReject(detail.getId());
-        return true;
-    }
+      }
+      
+      private findUnverifiedMedal(userMedals: Medalla[]): Medalla | undefined {
+        return userMedals.find(medal => medal.getStatus() === MEDAL_STATUS.NO_VERIFICADA);
+      }
+      
     private async adjustMedals(medal: Medalla, detailList:Detalle[]): Promise<void> {
         const pendingDetails = detailList.filter(item=>item.getStatus()===DETAIL_STATUS.PENDING);
         if(!pendingDetails.length){

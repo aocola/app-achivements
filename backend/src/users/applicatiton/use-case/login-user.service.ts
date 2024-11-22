@@ -4,6 +4,7 @@ import { UserRepository } from "src/users/domain/repository/user.repository";
 import { InvalidPasswordException } from "src/users/domain/exceptions/invalid-password";
 import * as bcrypt from 'bcrypt';
 import { Inject } from "@nestjs/common";
+import { User } from "src/users/domain/entities/user.entity";
 
 @CustomInjectable()
 export class LoginUserService {
@@ -18,17 +19,32 @@ export class LoginUserService {
      * @throws {InvalidPasswordException} Si la contraseña es incorrecta.
      */
     async execute(userId: string, password: string): Promise<object> {
+        const user = await this.getUserOrThrow(userId);
+    
+        await this.validatePassword(password, user.getPassword());
+    
+        await this.updateLastLogin(user);
+    
+        return user.toPublicValue();
+      }
+    
+      private async getUserOrThrow(userId: string): Promise<User> {
         const user = await this.userRepository.getById(userId);
         if (!user) {
-            throw new UserNotFoundException(userId);
+          throw new UserNotFoundException(userId);
         }
-        const isPasswordValid = await bcrypt.compare(password, user.toValue().password || '');
-        if (!isPasswordValid) {
-            throw new InvalidPasswordException();
+        return user;
+      }
+    
+      private async validatePassword(providedPassword: string, storedPassword: string): Promise<void> {
+        const isValid = await bcrypt.compare(providedPassword, storedPassword);
+        if (!isValid) {
+          throw new InvalidPasswordException();
         }
+      }
+    
+      private async updateLastLogin(user: User): Promise<void> {
         user.updateLastLogin();
         await this.userRepository.update(user);
-
-        return user.toPublicValue();
+      }
     }
-}

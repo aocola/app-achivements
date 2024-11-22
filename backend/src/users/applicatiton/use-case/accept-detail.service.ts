@@ -54,32 +54,47 @@ export class AcceptDetailService {
    */
   private async verifyUpgradeMedals(userId: string, counterIncome: number): Promise<string> {
     const userMedals = await this.medalRepository.getByUserId(userId);
-
-    // Obtener medalla no verificada o crear una nueva si no existe
-    const unverifiedMedal = userMedals.find(medal => medal.getStatus() === MEDAL_STATUS.NO_VERIFICADA);
-    let currentType: string;
-
-    if (!unverifiedMedal) {
-      currentType = await this.handleNoUnverifiedMedal(userId, userMedals);
-    } else {
-      currentType = unverifiedMedal.getType();
-    }
-
-    // Calcular el progreso total para la medalla actual
-    const detailList = await this.detailRepository.getByUserId(userId);
-    const totalCounter = detailList
-      .filter(item => item.getMedal() === currentType && item.getStatus() !== DETAIL_STATUS.REJECTED)
-      .reduce((acc, item) => acc + item.getCounter(), counterIncome);
-
-    // Verificar y actualizar medalla si el progreso es suficiente
-    if (totalCounter >= RANGE_PER_MEDAL && unverifiedMedal) {
-      unverifiedMedal.verify();
-      await this.medalRepository.update(unverifiedMedal);
-      this.notifyAchivement(unverifiedMedal);
-    }
-
+  
+    const currentType = await this.getCurrentMedalType(userId, userMedals);
+  
+    const totalCounter = await this.calculateTotalProgress(userId, currentType, counterIncome);
+  
+    await this.verifyAndUpdateMedalIfNeeded(currentType, totalCounter, userMedals);
+  
     return currentType;
   }
+  
+  private async getCurrentMedalType(userId: string, userMedals: Medalla[]): Promise<string> {
+    const unverifiedMedal = this.findUnverifiedMedal(userMedals);
+    if (unverifiedMedal) {
+      return unverifiedMedal.getType();
+    }
+    return await this.handleNoUnverifiedMedal(userId, userMedals);
+  }
+  
+  private findUnverifiedMedal(userMedals: Medalla[]): Medalla | undefined {
+    return userMedals.find(medal => medal.getStatus() === MEDAL_STATUS.NO_VERIFICADA);
+  }
+  
+  private async calculateTotalProgress(userId: string, medalType: string, counterIncome: number): Promise<number> {
+    const detailList = await this.detailRepository.getByUserId(userId);
+  
+    return detailList
+      .filter(detail => detail.getMedal() === medalType && detail.getStatus() !== DETAIL_STATUS.REJECTED)
+      .reduce((acc, detail) => acc + detail.getCounter(), counterIncome);
+  }
+  
+  private async verifyAndUpdateMedalIfNeeded(currentType: string, totalCounter: number, userMedals: Medalla[]): Promise<void> {
+    if (totalCounter >= RANGE_PER_MEDAL) {
+      const unverifiedMedal = this.findUnverifiedMedal(userMedals);
+      if (unverifiedMedal) {
+        unverifiedMedal.verify();
+        await this.medalRepository.update(unverifiedMedal);
+        this.notifyAchivement(unverifiedMedal);
+      }
+    }
+  }
+  
 
   /**
    * Maneja la creación de una medalla no verificada o devuelve la medalla máxima si no hay más por crear.
@@ -92,11 +107,11 @@ export class AcceptDetailService {
     const currentMedalTypes = new Set(userMedals.map(m => m.getType()));
     const highestMedal = getHighestMedalFromSet(currentMedalTypes);
 
+    //Crea la medalla en caso sea una aprobación consecutiva
     if (highestMedal !== getMaximumMedal()) {
       const newMedal = await this.createMedal(userId, getNextMedal(highestMedal), MEDAL_STATUS.NO_VERIFICADA);
       return newMedal.getType();
     }
-
     return getMaximumMedal();
   }
 

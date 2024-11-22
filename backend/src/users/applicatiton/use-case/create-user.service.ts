@@ -10,8 +10,8 @@ import { Inject } from "@nestjs/common";
 @CustomInjectable()
 export class CreateUserService {
     constructor(@Inject('UserRepository') private readonly repository: UserRepository) {}
-
-     /**
+  
+    /**
      * Crea un nuevo usuario en el sistema.
      * Verifica si el usuario ya existe, encripta la contraseña y guarda el nuevo usuario.
      *
@@ -20,16 +20,32 @@ export class CreateUserService {
      * @throws {UserAlreadyExistsException} Si ya existe un usuario con el mismo ID.
      */
     async execute(dto: CreateUserDto): Promise<object> {
-        const existingUser = await this.repository.getById(dto.userId);
-        if (existingUser) {
-            throw new UserAlreadyExistsException(dto.userId);
-        }
-        const hashedPassword = await bcrypt.hash(dto.password, 10);
-        const userObj = User.create({
-            ...dto,
-            password: hashedPassword,
-        });
-        const user = await this.repository.create(userObj);
-        return user.toPublicValue();
+      await this.ensureUserDoesNotExist(dto.userId);
+  
+      const hashedPassword = await this.hashPassword(dto.password);
+  
+      const user = await this.createUser(dto, hashedPassword);
+  
+      return user.toPublicValue();
     }
-}
+  
+    private async ensureUserDoesNotExist(userId: string): Promise<void> {
+      const existingUser = await this.repository.getById(userId);
+      if (existingUser) {
+        throw new UserAlreadyExistsException(userId);
+      }
+    }
+  
+    private async hashPassword(password: string): Promise<string> {
+      return bcrypt.hash(password, 10);
+    }
+  
+    private async createUser(dto: CreateUserDto, hashedPassword: string): Promise<User> {
+      const userObj = User.create({
+        ...dto,
+        password: hashedPassword,
+      });
+      return this.repository.create(userObj);
+    }
+  }
+  

@@ -49,6 +49,9 @@ export class User {
         };
     }
 
+    getPassword():string{
+        return this.attributes.password || '';
+    }
     // Método para ocultar información sensible
     toPublicValue(): Omit<UserAttributes, 'password'> {
         const { password, ...publicAttributes } = this.attributes;
