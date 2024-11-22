@@ -5,7 +5,7 @@ import { NotificationGateway } from "src/users/infrastructure/gateway/details.ga
 import { Detalle } from "src/users/domain/entities/detail.entity";
 import { Medalla } from "src/users/domain/entities/medal.entity";
 import { Inject } from "@nestjs/common";
-import { getHighestMedalFromSet, getMaximumMedal, getNextMedal, getSuperiorMedals, MEDAL_STATUS, RANGE_PER_MEDAL } from "../constants/medals";
+import { getHighestMedalFromSet, getMaximumMedal, getNextMedal, getSuperiorMedals, MEDAL_STATUS, MEDALS, RANGE_PER_MEDAL } from "../constants/medals";
 import { DETAIL_STATUS } from "../constants/detail";
 
 @CustomInjectable()
@@ -21,14 +21,14 @@ export class AcceptDetailService {
    * actualizar sus medallas y notifica tanto la aprobación del detalle como logros relacionados.
    *
    * @param {string} detailId - El ID del detalle que será procesado.
-   * @returns {Promise<boolean>} `true` si el detalle se aprobó y procesó correctamente.
+   * @returns {Promise<boolean>} true si el detalle se aprobó y procesó correctamente.
    * @throws {Error} Si el detalle no existe o ya está aprobado.
    */
   async execute(detailId: string): Promise<boolean> {
     const detail = await this.detailRepository.getById(detailId);
-    if (!detail) throw new Error(`Detalle con ID ${detailId} no encontrado.`);
+    if (!detail) throw new Error("Detalle con ID ${detailId} no encontrado.");
     if (detail.getStatus() !== DETAIL_STATUS.PENDING) {
-      throw new Error(`Detalle con ID ${detailId} ya está aprobado`);
+      throw new Error("Detalle con ID ${detailId} ya está aprobado");
     }
 
     const userId = detail.getOwner();
@@ -55,43 +55,35 @@ export class AcceptDetailService {
   private async verifyUpgradeMedals(userId: string, counterIncome: number): Promise<string> {
     const userMedals = await this.medalRepository.getByUserId(userId);
   
-    const currentType = await this.getCurrentMedalType(userId, userMedals);
+    const currentMedal = await this.getOrCreateUnverifiedMedal(userId, userMedals);
   
-    const totalCounter = await this.calculateTotalProgress(userId, currentType, counterIncome);
+    const totalCounter = await this.calculateTotalCounter(userId, currentMedal, counterIncome);
   
-    await this.verifyAndUpdateMedalIfNeeded(currentType, totalCounter, userMedals);
+    await this.updateMedalIfEligible(currentMedal, totalCounter);
   
-    return currentType;
+    return currentMedal.getType();
   }
   
-  private async getCurrentMedalType(userId: string, userMedals: Medalla[]): Promise<string> {
-    const unverifiedMedal = this.findUnverifiedMedal(userMedals);
+  private async getOrCreateUnverifiedMedal(userId: string, userMedals: Medalla[]): Promise<Medalla> {
+    const unverifiedMedal = userMedals.find(medal => medal.getStatus() === MEDAL_STATUS.NO_VERIFICADA);
     if (unverifiedMedal) {
-      return unverifiedMedal.getType();
+      return unverifiedMedal;
     }
     return await this.handleNoUnverifiedMedal(userId, userMedals);
   }
   
-  private findUnverifiedMedal(userMedals: Medalla[]): Medalla | undefined {
-    return userMedals.find(medal => medal.getStatus() === MEDAL_STATUS.NO_VERIFICADA);
-  }
-  
-  private async calculateTotalProgress(userId: string, medalType: string, counterIncome: number): Promise<number> {
+  private async calculateTotalCounter(userId: string, medal: Medalla, counterIncome: number): Promise<number> {
     const detailList = await this.detailRepository.getByUserId(userId);
-  
     return detailList
-      .filter(detail => detail.getMedal() === medalType && detail.getStatus() !== DETAIL_STATUS.REJECTED)
+      .filter(detail => detail.getMedal() === medal.getType() && detail.getStatus() === DETAIL_STATUS.APPROVED)
       .reduce((acc, detail) => acc + detail.getCounter(), counterIncome);
   }
   
-  private async verifyAndUpdateMedalIfNeeded(currentType: string, totalCounter: number, userMedals: Medalla[]): Promise<void> {
-    if (totalCounter >= RANGE_PER_MEDAL) {
-      const unverifiedMedal = this.findUnverifiedMedal(userMedals);
-      if (unverifiedMedal) {
-        unverifiedMedal.verify();
-        await this.medalRepository.update(unverifiedMedal);
-        this.notifyAchivement(unverifiedMedal);
-      }
+  private async updateMedalIfEligible(medal: Medalla, totalCounter: number): Promise<void> {
+    if (totalCounter >= RANGE_PER_MEDAL && medal.getStatus() === MEDAL_STATUS.NO_VERIFICADA) {
+      medal.verify();
+      await this.medalRepository.update(medal);
+      this.notifyAchivement(medal);
     }
   }
   
@@ -103,16 +95,18 @@ export class AcceptDetailService {
    * @param {Medalla[]} userMedals - Lista de medallas actuales del usuario.
    * @returns {Promise<string>} El tipo de la nueva medalla no verificada o la medalla máxima.
    */
-  private async handleNoUnverifiedMedal(userId: string, userMedals: Medalla[]): Promise<string> {
+  private async handleNoUnverifiedMedal(userId: string, userMedals: Medalla[]): Promise<Medalla> {
     const currentMedalTypes = new Set(userMedals.map(m => m.getType()));
     const highestMedal = getHighestMedalFromSet(currentMedalTypes);
 
-    //Crea la medalla en caso sea una aprobación consecutiva
     if (highestMedal !== getMaximumMedal()) {
+      console.log("highestMedal",highestMedal);
+      console.log("getNextMedal(highestMedal)",getNextMedal(highestMedal));
       const newMedal = await this.createMedal(userId, getNextMedal(highestMedal), MEDAL_STATUS.NO_VERIFICADA);
-      return newMedal.getType();
+      return newMedal;
     }
-    return getMaximumMedal();
+
+    return userMedals.find(item=>item.getType()===getMaximumMedal());
   }
 
   private async createMedal(userId: string, tipo: string, status: 'NO_VERIFICADA' | 'BLOQUEADA'): Promise<Medalla> {
@@ -131,4 +125,4 @@ export class AcceptDetailService {
     const userId = medal.getOwner();
     this.notificationGateway.server.to(userId).emit('notifyAchivement', { ...medal.toValue() });
   }
-}
+} 

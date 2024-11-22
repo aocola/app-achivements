@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import styles from './UserHistoryView.module.css';
 import CustomTable from '../common/table/CustomTable';
@@ -22,30 +22,37 @@ const UserHistoryView: React.FC = () => {
 
   const [data, setData] = useState<Detail[]>([]);
 
-  useEffect(() => {
-    const getDetails = async () => {
-      const { data, status } = await getUserDetalleById(id as string);
-      if (!status) {
-        toast.error('Ocurrió un error al obtener los datos');
-        return;
-      }
-      if (data.length === 0) {
-        toast.error('El usuario no posee registros');
-        return;
-      }
-      const translatedData = data.map((item: Detail) => ({
-        ...item,
-        status: item.status === 'APPROVED' 
-          ? 'Aprobado' 
-          : item.status === 'REJECTED' 
-          ? 'Rechazado' 
-          : 'Pendiente',
-      }));
 
-      setData(translatedData);
-    };
-    getDetails();
+  const getDetails = useCallback(async () => {
+    const { data, status } = await getUserDetalleById(id as string);
+    if (!status) {
+      toast.error('Ocurrió un error al obtener los datos');
+      return;
+    }
+    if (data.length === 0) {
+      if (!toast.isActive('no-records')) {
+        toast.warn('El usuario no posee registros', { toastId: 'no-records' });
+      }
+      return;
+    }
+    const translatedData = data.map((item: Detail) => ({
+      ...item,
+      status: item.status === 'APPROVED' 
+        ? 'Aprobado' 
+        : item.status === 'REJECTED' 
+        ? 'Rechazado' 
+        : 'Pendiente',
+    }));
+  
+    setData(translatedData);
   }, [id]);
+  
+  useEffect(() => {
+    if (id) {
+      getDetails();
+    }
+  }, [id]);
+  
 
   const handleBack = () => {
     router.push('/admin');

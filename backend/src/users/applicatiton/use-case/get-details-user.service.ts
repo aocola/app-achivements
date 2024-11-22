@@ -21,8 +21,8 @@ export class GetUserDetailService {
   }
 
   private async fetchUserDetailsOrThrow(userId: string): Promise<Detalle[]> {
-    const details = await this.repository.getByUserId(userId);
-    if (!details || details.length === 0) {
+    const details = await this.repository.getByUserId(userId) || [];
+    if (!details) {
       throw new DetailNotFoundException(userId);
     }
     return details;
