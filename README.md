@@ -50,41 +50,6 @@ A continuación, se encuentran los archivos disponibles para su descarga directa
 
 ---
 
-## Controlador: Obtener Medallas por Usuario
-
-### API: `@Controller("users")`
-
-```typescript
-@Controller("users")
-export class GetMedalByUserController {
-    constructor(private service: GetMedalsByUserService) {}
-
-    @Get("medals/:id")
-    async run(@Param() dto: GetMedalsByUserIdDto): Promise<object> {
-        try {
-            const data = await this.service.execute(dto.id);
-            return ResponseDto.success(data, "Operacion satisfactoria", HttpStatus.FOUND);
-        } catch (error) {
-            return ResponseDto.error("Error en obtener medallas", error, HttpStatus.BAD_REQUEST);
-        }
-    }
-}
-```
-
-### DTO: `GetMedalsByUserIdDto`
-
-```typescript
-import { IsNotEmpty, IsString } from 'class-validator';
-
-export class GetMedalsByUserIdDto {
-    @IsString()
-    @IsNotEmpty()
-    id: string; // ID del usuario para obtener sus detalles
-}
-```
-
----
-
 ## Tecnologías Utilizadas
 
 - **Backend**: NestJS
