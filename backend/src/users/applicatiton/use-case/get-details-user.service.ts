@@ -2,11 +2,14 @@ import { Inject } from "@nestjs/common";
 import { CustomInjectable } from "src/common/dependecy-injection/injectable";
 import { Detalle } from "src/users/domain/entities/detail.entity";
 import { DetailNotFoundException } from "src/users/domain/exceptions/detail-not-found";
+import { UserNotFoundException } from "src/users/domain/exceptions/user-not-found";
 import { DetailRepository } from "src/users/domain/repository/detail.repository";
+import { UserRepository } from "src/users/domain/repository/user.repository";
 
 @CustomInjectable()
 export class GetUserDetailService {
-  constructor(@Inject('DetailRepository') private readonly repository: DetailRepository) {}
+  constructor(@Inject('DetailRepository') private readonly detailRepository: DetailRepository,
+                @Inject('UserRepository') private readonly userRepository: UserRepository) {}
 
   /**
    * Obtiene los detalles asociados a un usuario dado su ID.
@@ -16,12 +19,19 @@ export class GetUserDetailService {
    * @throws {DetailNotFoundException} Si no se encuentran detalles para el usuario dado.
    */
   async execute(id: string): Promise<object[]> {
+    await this.validateUser(id);
     const userDetails = await this.fetchUserDetailsOrThrow(id);
     return this.mapDetailsToValues(userDetails);
   }
 
+  private async validateUser(userId:string):Promise<void>{
+    const user = await this.userRepository.getById(userId);
+    if (!user) {
+        throw new UserNotFoundException(userId);
+      }
+  }
   private async fetchUserDetailsOrThrow(userId: string): Promise<Detalle[]> {
-    const details = await this.repository.getByUserId(userId) || [];
+    const details = await this.detailRepository.getByUserId(userId) || [];
     if (!details) {
       throw new DetailNotFoundException(userId);
     }
