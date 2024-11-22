@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import styles from './UserInitialView.module.css';
 import CustomButton from '../common/button/CustomButton';
 import { processCSVByIndex } from '@/utils/processCv';
-import { getUserDetalleById, getUserMedals, registerClientesBatch } from '@/services/userService'; // Importa el servicio de logout
+import { getProgress, getUserDetalleById, getUserMedals, registerClientesBatch } from '@/services/userService'; // Importa el servicio de logout
 import { toast } from 'react-toastify';
 import { useSelector, useDispatch } from 'react-redux';
 import { setUserState } from '@/redux/slices/appSlice'; // Acción para limpiar el estado del usuario
@@ -26,7 +26,7 @@ const UserInitialView: React.FC = () => {
     try {
       const { data } = await getUserMedals(user.userId);
       const medallas = new Set<string>(
-        data.filter((item: any) => ['NO_VERIFICADA', 'VERIFICADA'].includes(item.status)).map((item: any) => item.tipo)
+        data.filter((item: any) => 'VERIFICADA'===item.status).map((item: any) => item.tipo)
       );
       const medal = medallas && getHighestMedalFromSet(medallas);
       const dataMedal = data.find((item: any) => item.tipo === medal);
@@ -40,11 +40,8 @@ const UserInitialView: React.FC = () => {
     if (!user || Array.isArray(user.userId)) return;
 
     try {
-      const { data } = await getUserDetalleById(user.userId);
-      const counter = data
-        .filter((item: any) => item.status === 'APPROVED')
-        .reduce((acc: number, d: any) => acc + d.counter, 0);
-      setProgress((counter % 10) * 10);
+      const { data } = await getProgress(user.userId);
+      setProgress((data % 10) * 10);
     } catch {
       toast.error('Error al obtener detalles.');
     }
@@ -55,7 +52,6 @@ const UserInitialView: React.FC = () => {
     getDetailValues();
 
     if (user && user.userId) {
-      console.log("USERID")
       const socket = io(process.env.SERVER_HOST, {
         transports: ['websocket'],
         withCredentials: true,
@@ -66,7 +62,6 @@ const UserInitialView: React.FC = () => {
       });
 
       socket.on('notifyAchivement', (medal) => {
-        console.log("notifyAchivement",medal);
         try {
           toast.success(`Se ha alcanzado una nueva medalla! Felicitaciones: ${medal.tipo}`);
           getMedalValues();
@@ -77,9 +72,11 @@ const UserInitialView: React.FC = () => {
 
       socket.on('notifyApproval', (detail) => {
         try {
-          console.log(detail);
           if (detail.status === 'APPROVED') {
-            setProgress((prev) => prev + (detail.counter % 10) * 10);
+            setProgress((prev) =>{
+              const newProgress =  prev + (detail.counter % 10) * 10;
+              return newProgress>100?100:newProgress;
+            });
             toast.info(`Se ha aprobado uno de sus archivos que contaba con ${detail.counter} clientes.`);
           } else {
             toast.warn(`Se ha rechazado uno de sus archivos que contaba con ${detail.counter} clientes.`);

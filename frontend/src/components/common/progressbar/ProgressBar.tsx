@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import styles from './ProgressBar.module.css';
 
 interface ProgressBarProps {
-  progress: number; // Valor de progreso en porcentaje (0-100)
+  progress: number; 
 }
 
 const ProgressBar: React.FC<ProgressBarProps> = ({ progress }) => {

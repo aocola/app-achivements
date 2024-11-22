@@ -1,7 +1,7 @@
 export interface MedallaAttributes {
     medallaId: string;
     userId: string;
-    tipo: string; // Ejemplo: MADERA, HIERRO, etc.
+    tipo: string; 
     status: 'NO_VERIFICADA' | 'VERIFICADA'  | 'BLOQUEADA';
     createdAt: Date;
     updatedAt: Date;
@@ -60,7 +60,16 @@ export class Medalla {
         }
     }
 
+    getStatus():string{
+        return this.attributes.status;
+    }
 
+    getType():string{
+        return this.attributes.tipo;
+    }
+    getOwner():string{
+        return this.attributes.userId;
+    }
     changeStatus(newStatus: 'NO_VERIFICADA' | 'VERIFICADA' | 'BLOQUEADA'): void {
         if (this.attributes.status !== newStatus) {
             this.attributes.status = newStatus;

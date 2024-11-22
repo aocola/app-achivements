@@ -20,8 +20,12 @@ export class MongoMedalRepository implements MedalRepository{
         const { medallaId, ...updateFields } = medal.toValue();
         await this.medalModel.updateOne({ medallaId: medallaId }, { $set: updateFields }).exec();
     }
-    async getByUserId(userId: string): Promise<Medalla[]> {
-        const documents = await this.medalModel.find({ userId }).sort({ createdAt: -1 }).exec();
+    async getByUserId(userId: string, status?: string): Promise<Medalla[]> {
+        const query: any = { userId };
+        if (status) {
+            query.status = status;
+        }
+        const documents = await this.medalModel.find(query).sort({ createdAt: -1 }).exec();
         return documents.map(item => this.mapToEntity(item));
     }
 

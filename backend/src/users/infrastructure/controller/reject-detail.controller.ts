@@ -3,7 +3,6 @@ import { DetalleRequestDto } from "./dto/detail-request.http.dto";
 import { ResponseDto } from "src/common/dto/response.dto";
 import { RejectDetailService } from "src/users/applicatiton/use-case/reject-detail.service";
 
-
 @Controller("users")
 export class RejectDetailController {
     constructor(private service: RejectDetailService){}

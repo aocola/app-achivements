@@ -74,17 +74,17 @@ const CustomTable = <T,>({ data, columns, rowsPerPage = 5 }: CustomTableProps<T>
           disabled={currentPage === 1}
           className={styles.paginationButton}
         >
-          Previous
+          Previo
         </button>
         <span className={styles.pageInfo}>
-          Page {currentPage} of {totalPages}
+          Página {currentPage} de {totalPages}
         </span>
         <button
           onClick={handleNext}
           disabled={currentPage === totalPages}
           className={styles.paginationButton}
         >
-          Next
+          Siguiente
         </button>
       </div>
     </div>

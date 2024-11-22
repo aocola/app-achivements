@@ -33,8 +33,6 @@ const UserHistoryView: React.FC = () => {
         toast.error('El usuario no posee registros');
         return;
       }
-
-      // Mapear los estados a español
       const translatedData = data.map((item: Detail) => ({
         ...item,
         status: item.status === 'APPROVED' 

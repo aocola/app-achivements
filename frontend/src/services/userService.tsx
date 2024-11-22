@@ -80,3 +80,9 @@ export const getUserMedals = async (id: string) => {
   const response = await axiosInstance.get(`/medals/${id}`);
   return response.data;
 };
+
+// Servicio para obtener el progreso de usuario
+export const getProgress = async (id: string) => {
+  const response = await axiosInstance.get(`/medal/${id}`);
+  return response.data;
+};

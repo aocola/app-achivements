@@ -5,15 +5,10 @@ import { LoginUserController } from './infrastructure/controller/login-user.cont
 import { RegisterCustomerController } from './infrastructure/controller/register-customer.controller';
 import { CreateUserService } from './applicatiton/use-case/create-user.service';
 import { LoginUserService } from './applicatiton/use-case/login-user.service';
-import { RegisterCustomerService } from './applicatiton/use-case/register-customers.service';
 import { MongoUserRepository } from './infrastructure/repository/mongo-db/MongoUserRepository';
 import { MongoMedalRepository } from './infrastructure/repository/mongo-db/MongoMedalRepository';
 import { MongoDetailRepository } from './infrastructure/repository/mongo-db/MongoDetailRepository';
 import { MongoCustomerRepository } from './infrastructure/repository/mongo-db/MongoCustomerRepository';
-import { UserRepository } from './domain/repository/user.repository';
-import { MedalRepository } from './domain/repository/medal.repository';
-import { CustomerRepository } from './domain/repository/customers.repository';
-import { DetailRepository } from './domain/repository/detail.repository';
 import { UserSchema } from './infrastructure/repository/mongo-db/schema/user.schema';
 import { User } from './domain/entities/user.entity';
 import { Medalla } from './domain/entities/medal.entity';
@@ -25,16 +20,17 @@ import { Detalle } from './domain/entities/detail.entity';
 import { AcceptDetailController } from './infrastructure/controller/accept-detail.controller';
 import { RejectDetailController } from './infrastructure/controller/reject-detail.controller';
 import { GetUserDetailController } from './infrastructure/controller/get-user-detail.controller';
-import { RetryDetailController } from './infrastructure/controller/retry-detail.controller';
 import { GetAllDetailController } from './infrastructure/controller/get-user-all-detail.controller';
 import { GetMedalByUserController } from './infrastructure/controller/get-medal-user.controller';
 import { GetMedalsByUserService } from './applicatiton/use-case/get-medals-user.service';
 import { GetUserDetailService } from './applicatiton/use-case/get-details-user.service';
 import { GetAllDetailService } from './applicatiton/use-case/get-all-details.service';
+import { NotificationGateway } from './infrastructure/gateway/details.gateway.websocket';
+import { GetDetailMedalController } from './infrastructure/controller/get-detail-medal.controller';
+import { GetDetailMedalService } from './applicatiton/use-case/get-detail-medal.service';
+import { RegisterCustomerService } from './applicatiton/use-case/register-customers.service';
 import { AcceptDetailService } from './applicatiton/use-case/accept-detail.service';
 import { RejectDetailService } from './applicatiton/use-case/reject-detail.service';
-import { RetryDetailService } from './applicatiton/use-case/retry-detail.service';
-import { NotificationGateway } from './infrastructure/gateway/details.gateway.websocket';
 
 @Module({
   imports: [
@@ -51,48 +47,48 @@ import { NotificationGateway } from './infrastructure/gateway/details.gateway.we
     RegisterCustomerController,
     AcceptDetailController,
     RejectDetailController,
-    RetryDetailController,
     GetUserDetailController,
     GetAllDetailController,
-    GetMedalByUserController
+    GetMedalByUserController,
+    GetDetailMedalController
   ],
   providers: [
     CreateUserService,
     LoginUserService,
     RegisterCustomerService,
+    GetDetailMedalService,
     GetMedalsByUserService,
     GetUserDetailService,
     GetAllDetailService,
     AcceptDetailService,
     RejectDetailService,
-    RetryDetailService,
     MongoUserRepository,
     MongoMedalRepository,
     MongoDetailRepository,
     MongoCustomerRepository,
     NotificationGateway,
     {
-      provide: UserRepository,
+      provide: 'UserRepository',
       useClass: MongoUserRepository,
     },
     {
-      provide: MedalRepository,
+      provide: 'MedalRepository',
       useClass: MongoMedalRepository,
     },
     {
-      provide: CustomerRepository,
+      provide: 'CustomerRepository',
       useClass: MongoCustomerRepository,
     },
     {
-      provide: DetailRepository,
+      provide: 'DetailRepository',
       useClass: MongoDetailRepository,
     },
   ],
   exports: [
-    UserRepository,
-    MedalRepository,
-    CustomerRepository,
-    DetailRepository,
+    'UserRepository',
+    'MedalRepository',
+    'CustomerRepository',
+    'DetailRepository',
     NotificationGateway
   ],
 })

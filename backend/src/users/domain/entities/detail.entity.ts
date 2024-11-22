@@ -65,5 +65,25 @@ export class Detalle {
         if(medal.length>0)
             this.attributes.medal=medal;
     }
+
+    getCounter():number{
+        return this.attributes.counter;
+    }
+
+    getOwner():string{
+        return this.attributes.userId;
+    }
+
+    getMedal():string{
+        return this.attributes.medal;
+    }
+
+    getId():string{
+        return this.attributes.detalleId;
+    }
+
+    getStatus():string{
+        return this.attributes.status;
+    }
 }
 

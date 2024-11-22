@@ -1,7 +1,7 @@
 import { Medalla } from "../entities/medal.entity";
 
-export abstract class MedalRepository {
-    abstract create(medal: Medalla): Promise<Medalla>;
-    abstract update(medal:Medalla): Promise<void>;
-    abstract getByUserId(userId:string):Promise<Medalla[]>;
+export interface MedalRepository {
+    create(medal: Medalla): Promise<Medalla>;
+    update(medal:Medalla): Promise<void>;
+    getByUserId(userId:string, status?:string):Promise<Medalla[]>;
 }

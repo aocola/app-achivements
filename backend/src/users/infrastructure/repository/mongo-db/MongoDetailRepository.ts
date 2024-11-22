@@ -29,7 +29,7 @@ export class MongoDetailRepository implements DetailRepository {
     }
 
     async getByUserId(userId: string): Promise<Detalle[]> {
-        const document = await this.detailModel.find({userId});
+        const document = await this.detailModel.find({userId}).sort({ createdAt: -1 }).exec();
         return document.map(item=>this.mapToEntity(item));
     }
 

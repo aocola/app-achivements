@@ -25,6 +25,13 @@ const MEDAL_SEQUENCE: MedalType[] = [
     MEDALS.RADIANTE,
 ];
 
+const MEDAL_STATUS = {
+    NO_VERIFICADA: 'NO_VERIFICADA',
+    VERIFICADA: 'VERIFICADA',
+    BLOQUEADA: 'BLOQUEADA',
+  } as const;
+
+  
 function getMedal(counter: number): MedalType {
     if (counter >= 90) return MEDALS.RADIANTE;
     if (counter >= 80) return MEDALS.INMORTAL;
@@ -60,6 +67,10 @@ function isNoMedal(currentMedal: MedalType): boolean {
 
 function getMinimalMedal(): MedalType {
     return MEDAL_SEQUENCE[0]; 
+}
+
+function getMaximumMedal(): MedalType {
+    return MEDAL_SEQUENCE[MEDAL_SEQUENCE.length-1]; 
 }
 
 function isMedalType(value: string): value is MedalType {
@@ -102,6 +113,7 @@ function getNextMedal(currentMedal: MedalType): MedalType | null {
     return MEDAL_SEQUENCE[currentIndex + 1];
 }
 
+const RANGE_PER_MEDAL = 10;
 export {
     getMedal,
     getPreviousMedals,
@@ -113,6 +125,9 @@ export {
     isNoMedal,
     getMinimalMedal,
     isValidMedal,
+    getMaximumMedal,
+    MEDAL_STATUS,
     MEDALS,
+    RANGE_PER_MEDAL,
     MedalType
 };
