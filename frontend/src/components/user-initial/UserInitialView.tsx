@@ -3,10 +3,10 @@ import { useRouter } from 'next/router';
 import styles from './UserInitialView.module.css';
 import CustomButton from '../common/button/CustomButton';
 import { processCSVByIndex } from '@/utils/processCv';
-import { getProgress, getUserMedals, registerClientesBatch } from '@/services/userService'; // Importa el servicio de logout
+import { getProgress, getUserMedals, registerClientesBatch } from '@/services/userService';
 import { toast } from 'react-toastify';
 import { useSelector, useDispatch } from 'react-redux';
-import { setUserState } from '@/redux/slices/appSlice'; // Acción para limpiar el estado del usuario
+import { setUserState } from '@/redux/slices/appSlice';
 import { getHighestMedalFromSet, getMaximumMedal, getStyle } from './medals';
 import Image from 'next/image';
 import ProgressBar from '../common/progressbar/ProgressBar';
